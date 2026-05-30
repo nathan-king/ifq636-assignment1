@@ -1,5 +1,14 @@
 const FitnessClass = require('../models/FitnessClass');
 
+const getFitnessClasses = async (req, res) => {
+    try {
+        const fitnessClasses = await FitnessClass.find().sort({ date: 1, time: 1 });
+        res.json(fitnessClasses);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 const createFitnessClass = async (req, res) => {
     const { class: className, instructor, date, time, capacity, status } = req.body;
 
@@ -23,4 +32,4 @@ const createFitnessClass = async (req, res) => {
     }
 };
 
-module.exports = { createFitnessClass };
+module.exports = { createFitnessClass, getFitnessClasses };
