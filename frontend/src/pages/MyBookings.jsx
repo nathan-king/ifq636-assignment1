@@ -1,28 +1,59 @@
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import axiosInstance from '../axiosConfig';
 import { useAuth } from '../context/AuthContext';
 
-const sampleBookings = [
-  {
-    id: 'booking-1',
-    class: 'Yoga',
-    instructor: 'Jack Jones',
-    date: '2nd June',
-    time: '10:00 AM',
-    status: 'Confirmed',
-  },
-  {
-    id: 'booking-2',
-    class: 'Pilates',
-    instructor: 'Jessica Smith',
-    date: '4th June',
-    time: '5:30 PM',
-    status: 'Confirmed',
-  },
-];
+const formatDate = (date) => {
+  if (!date) return '';
+
+  return new Date(date).toLocaleDateString('en-AU', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
+};
+
+const formatTime = (time) => {
+  if (!time || !time.includes(':')) return time;
+
+  const [hourValue, minute] = time.split(':');
+  const hour = Number(hourValue);
+
+  if (Number.isNaN(hour)) return time;
+
+  const suffix = hour >= 12 ? 'PM' : 'AM';
+  const displayHour = hour % 12 || 12;
+
+  return `${displayHour}:${minute} ${suffix}`;
+};
+
+const formatStatus = (status) => {
+  if (!status) return '';
+
+  return status.charAt(0).toUpperCase() + status.slice(1);
+};
 
 const MyBookings = () => {
   const { isAdmin, logout } = useAuth();
   const navigate = useNavigate();
+  const [bookings, setBookings] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const fetchBookings = async () => {
+      try {
+        const response = await axiosInstance.get('/api/bookings');
+        setBookings(response.data);
+      } catch (fetchError) {
+        setError(fetchError.response?.data?.message || 'Failed to load bookings.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBookings();
+  }, []);
 
   const handleLogout = () => {
     logout();
@@ -62,6 +93,12 @@ const MyBookings = () => {
       <main className="flex-1 px-4 py-8 sm:px-8 md:px-12 lg:px-16 lg:py-16">
         <h2 className="mb-6 text-3xl font-bold text-slate-950">My Bookings</h2>
 
+        {error && (
+          <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-5 py-4 text-base font-medium text-red-700">
+            {error}
+          </div>
+        )}
+
         <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[760px] border-collapse text-left">
@@ -76,24 +113,44 @@ const MyBookings = () => {
                 </tr>
               </thead>
               <tbody>
-                {sampleBookings.map((booking) => (
-                  <tr key={booking.id} className="border-t border-slate-200 transition hover:bg-slate-50">
-                    <td className="px-6 py-5 text-base font-medium text-slate-950">{booking.class}</td>
-                    <td className="px-6 py-5 text-base text-slate-700">{booking.instructor}</td>
-                    <td className="px-6 py-5 text-base text-slate-700">{booking.date}</td>
-                    <td className="px-6 py-5 text-base text-slate-700">{booking.time}</td>
-                    <td className="px-6 py-5">
-                      <span className="inline-flex rounded-full bg-emerald-50 px-3 py-1 text-sm font-semibold text-emerald-700 ring-1 ring-inset ring-emerald-200">
-                        {booking.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-5">
-                      <button type="button" className="font-medium text-red-600 hover:underline">
-                        Cancel
-                      </button>
+                {loading ? (
+                  <tr>
+                    <td colSpan="6" className="px-6 py-8 text-center text-base font-medium text-slate-700">
+                      Loading bookings...
                     </td>
                   </tr>
-                ))}
+                ) : bookings.length === 0 ? (
+                  <tr>
+                    <td colSpan="6" className="px-6 py-8 text-center text-base font-medium text-slate-700">
+                      You have no bookings yet.
+                    </td>
+                  </tr>
+                ) : (
+                  bookings.map((booking) => {
+                    const fitnessClass = booking.fitnessClass || {};
+
+                    return (
+                      <tr key={booking._id} className="border-t border-slate-200 transition hover:bg-slate-50">
+                        <td className="px-6 py-5 text-base font-medium text-slate-950">
+                          {fitnessClass.class || 'Unavailable class'}
+                        </td>
+                        <td className="px-6 py-5 text-base text-slate-700">{fitnessClass.instructor || '-'}</td>
+                        <td className="px-6 py-5 text-base text-slate-700">{formatDate(fitnessClass.date)}</td>
+                        <td className="px-6 py-5 text-base text-slate-700">{formatTime(fitnessClass.time)}</td>
+                        <td className="px-6 py-5">
+                          <span className="inline-flex rounded-full bg-emerald-50 px-3 py-1 text-sm font-semibold text-emerald-700 ring-1 ring-inset ring-emerald-200">
+                            {formatStatus(booking.status)}
+                          </span>
+                        </td>
+                        <td className="px-6 py-5">
+                          <button type="button" className="font-medium text-red-600 hover:underline">
+                            Cancel
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
               </tbody>
             </table>
           </div>

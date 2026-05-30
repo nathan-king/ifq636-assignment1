@@ -25,6 +25,72 @@ const stubAuthenticatedUser = (role = 'user') => {
     });
 };
 
+describe('GET /api/bookings', () => {
+    before(() => {
+        process.env.JWT_SECRET = process.env.JWT_SECRET || 'test-secret';
+    });
+
+    afterEach(() => {
+        sinon.restore();
+    });
+
+    it('returns bookings for the authenticated user', async () => {
+        const bookings = [
+            {
+                id: 'booking-id',
+                user: 'user-id',
+                status: 'booked',
+                fitnessClass: {
+                    id: 'fitness-class-id',
+                    class: 'Yoga',
+                    instructor: 'Jack Jones',
+                },
+            },
+        ];
+        const sortStub = sinon.stub().resolves(bookings);
+        const populateStub = sinon.stub().returns({ sort: sortStub });
+        const findStub = sinon.stub(Booking, 'find').returns({ populate: populateStub });
+
+        stubAuthenticatedUser();
+
+        const res = await chai.request(app)
+            .get('/api/bookings')
+            .set('Authorization', `Bearer ${createToken()}`);
+
+        expect(res).to.have.status(200);
+        expect(res.body).to.deep.equal(bookings);
+        expect(findStub.calledOnceWithExactly({ user: 'user-id' })).to.equal(true);
+        expect(populateStub.calledOnceWithExactly('fitnessClass')).to.equal(true);
+        expect(sortStub.calledOnceWithExactly({ createdAt: -1 })).to.equal(true);
+    });
+
+    it('rejects requests without a token', async () => {
+        const findStub = sinon.stub(Booking, 'find');
+
+        const res = await chai.request(app)
+            .get('/api/bookings');
+
+        expect(res).to.have.status(401);
+        expect(res.body).to.deep.equal({ message: 'Not authorized, no token' });
+        expect(findStub.notCalled).to.equal(true);
+    });
+
+    it('returns a server error when booking retrieval fails', async () => {
+        const sortStub = sinon.stub().rejects(new Error('Database unavailable'));
+        const populateStub = sinon.stub().returns({ sort: sortStub });
+
+        sinon.stub(Booking, 'find').returns({ populate: populateStub });
+        stubAuthenticatedUser();
+
+        const res = await chai.request(app)
+            .get('/api/bookings')
+            .set('Authorization', `Bearer ${createToken()}`);
+
+        expect(res).to.have.status(500);
+        expect(res.body).to.deep.equal({ message: 'Database unavailable' });
+    });
+});
+
 describe('POST /api/bookings', () => {
     before(() => {
         process.env.JWT_SECRET = process.env.JWT_SECRET || 'test-secret';

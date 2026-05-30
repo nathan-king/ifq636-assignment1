@@ -1,6 +1,18 @@
 const Booking = require('../models/Booking');
 const FitnessClass = require('../models/FitnessClass');
 
+const getBookings = async (req, res) => {
+    try {
+        const bookings = await Booking.find({ user: req.user._id })
+            .populate('fitnessClass')
+            .sort({ createdAt: -1 });
+
+        res.json(bookings);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 const createBooking = async (req, res) => {
     const { fitnessClassId } = req.body;
 
@@ -53,4 +65,4 @@ const createBooking = async (req, res) => {
     }
 };
 
-module.exports = { createBooking };
+module.exports = { createBooking, getBookings };
