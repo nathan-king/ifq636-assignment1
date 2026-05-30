@@ -12,12 +12,13 @@ chai.use(chaiHttp);
 
 const createToken = () => jwt.sign({ id: 'user-id' }, process.env.JWT_SECRET);
 
-const stubAuthenticatedUser = () => {
+const stubAuthenticatedUser = (role = 'user') => {
     sinon.stub(User, 'findById').returns({
         select: sinon.stub().resolves({
             id: 'user-id',
             name: 'Test User',
             email: 'test@example.com',
+            role,
         }),
     });
 };
@@ -31,7 +32,7 @@ describe('POST /api/fitness-classes', () => {
         sinon.restore();
     });
 
-    it('creates a fitness class for an authenticated user', async () => {
+    it('creates a fitness class for an authenticated admin', async () => {
         const classData = {
             class: 'Yoga',
             instructor: 'Jane Smith',
@@ -45,7 +46,7 @@ describe('POST /api/fitness-classes', () => {
             ...classData,
         });
 
-        stubAuthenticatedUser();
+        stubAuthenticatedUser('admin');
 
         const res = await chai.request(app)
             .post('/api/fitness-classes')
@@ -85,10 +86,31 @@ describe('POST /api/fitness-classes', () => {
         expect(createStub.notCalled).to.equal(true);
     });
 
-    it('rejects requests with missing required fields', async () => {
+    it('rejects class creation for non-admin users', async () => {
         const createStub = sinon.stub(FitnessClass, 'create');
 
         stubAuthenticatedUser();
+
+        const res = await chai.request(app)
+            .post('/api/fitness-classes')
+            .set('Authorization', `Bearer ${createToken()}`)
+            .send({
+                class: 'Yoga',
+                instructor: 'Jane Smith',
+                date: '2026-06-01',
+                time: '09:00',
+                capacity: 20,
+            });
+
+        expect(res).to.have.status(403);
+        expect(res.body).to.deep.equal({ message: 'Not authorized as admin' });
+        expect(createStub.notCalled).to.equal(true);
+    });
+
+    it('rejects requests with missing required fields', async () => {
+        const createStub = sinon.stub(FitnessClass, 'create');
+
+        stubAuthenticatedUser('admin');
 
         const res = await chai.request(app)
             .post('/api/fitness-classes')
@@ -111,7 +133,7 @@ describe('POST /api/fitness-classes', () => {
     it('returns a server error when class creation fails', async () => {
         sinon.stub(FitnessClass, 'create').rejects(new Error('Database unavailable'));
 
-        stubAuthenticatedUser();
+        stubAuthenticatedUser('admin');
 
         const res = await chai.request(app)
             .post('/api/fitness-classes')
