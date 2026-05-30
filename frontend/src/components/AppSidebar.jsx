@@ -39,7 +39,7 @@ const AppSidebar = ({ active }) => {
           {classLinkLabel}
         </Link>
         <Link to="/bookings" className={active === 'bookings' ? activeLinkClassName : inactiveLinkClassName}>
-          My Bookings
+          {adminMode ? 'Bookings' : 'My Bookings'}
         </Link>
         <Link to="/profile" className={active === 'profile' ? activeLinkClassName : inactiveLinkClassName}>
           Profile

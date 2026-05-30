@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import axiosInstance from '../axiosConfig';
 import AppSidebar from '../components/AppSidebar';
+import { useAuth } from '../context/AuthContext';
 
 const formatDate = (date) => {
   if (!date) return '';
@@ -33,6 +34,7 @@ const formatStatus = (status) => {
 };
 
 const MyBookings = () => {
+  const { isAdmin } = useAuth();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -86,7 +88,7 @@ const MyBookings = () => {
       <AppSidebar active="bookings" />
 
       <main className="flex-1 px-4 py-8 sm:px-8 md:px-12 lg:px-16 lg:py-16">
-        <h2 className="mb-6 text-3xl font-bold text-slate-950">My Bookings</h2>
+        <h2 className="mb-6 text-3xl font-bold text-slate-950">{isAdmin ? 'Bookings' : 'My Bookings'}</h2>
 
         {successMessage && (
           <div className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-5 py-4 text-base font-medium text-emerald-700">
