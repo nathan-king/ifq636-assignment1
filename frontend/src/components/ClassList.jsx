@@ -9,6 +9,20 @@ const formatDate = (date) => {
   });
 };
 
+const formatTime = (time) => {
+  if (!time || !time.includes(':')) return time;
+
+  const [hourValue, minute] = time.split(':');
+  const hour = Number(hourValue);
+
+  if (Number.isNaN(hour)) return time;
+
+  const suffix = hour >= 12 ? 'PM' : 'AM';
+  const displayHour = hour % 12 || 12;
+
+  return `${displayHour}:${minute} ${suffix}`;
+};
+
 const ClassList = () => {
   const [classes, setClasses] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -73,7 +87,7 @@ const ClassList = () => {
                 <td className="px-6 py-5 text-base font-medium text-slate-950">{fitnessClass.class}</td>
                 <td className="px-6 py-5 text-base text-slate-700">{fitnessClass.instructor}</td>
                 <td className="px-6 py-5 text-base text-slate-700">{formatDate(fitnessClass.date)}</td>
-                <td className="px-6 py-5 text-base text-slate-700">{fitnessClass.time}</td>
+                <td className="px-6 py-5 text-base text-slate-700">{formatTime(fitnessClass.time)}</td>
                 <td className="px-6 py-5 text-base text-slate-700">{fitnessClass.capacity}</td>
                 <td className="px-6 py-5">
                   <button
