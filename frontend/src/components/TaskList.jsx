@@ -16,22 +16,24 @@ const TaskList = ({ tasks, setTasks, setEditingTask }) => {
   };
 
   return (
-    <div>
+    <div className="space-y-4">
       {tasks.map((task) => (
-        <div key={task._id} className="bg-gray-100 p-4 mb-4 rounded shadow">
-          <h2 className="font-bold">{task.title}</h2>
-          <p>{task.description}</p>
-          <p className="text-sm text-gray-500">Deadline: {new Date(task.deadline).toLocaleDateString()}</p>
-          <div className="mt-2">
+        <div key={task._id} className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+          <h2 className="text-lg font-bold text-slate-950">{task.title}</h2>
+          <p className="mt-1 text-base text-slate-700">{task.description}</p>
+          <p className="mt-3 text-sm font-medium text-slate-500">
+            Deadline: {new Date(task.deadline).toLocaleDateString()}
+          </p>
+          <div className="mt-4 flex gap-3">
             <button
               onClick={() => setEditingTask(task)}
-              className="mr-2 bg-yellow-500 text-white px-4 py-2 rounded"
+              className="h-10 rounded-md bg-amber-500 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-amber-600"
             >
               Edit
             </button>
             <button
               onClick={() => handleDelete(task._id)}
-              className="bg-red-500 text-white px-4 py-2 rounded"
+              className="h-10 rounded-md bg-red-500 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-red-600"
             >
               Delete
             </button>
