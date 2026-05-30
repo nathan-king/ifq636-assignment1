@@ -1,6 +1,8 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import AdminRoute from './components/AdminRoute';
 import Navbar from './components/Navbar';
 import ProtectedRoute from './components/ProtectedRoute';
+import AdminClasses from './pages/AdminClasses';
 import Classes from './pages/Classes';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -20,6 +22,14 @@ function App() {
             <ProtectedRoute>
               <Classes />
             </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/classes"
+          element={
+            <AdminRoute>
+              <AdminClasses />
+            </AdminRoute>
           }
         />
         <Route

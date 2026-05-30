@@ -1,10 +1,10 @@
 const express = require('express');
 const { createFitnessClass, getFitnessClasses } = require('../controllers/fitnessClassController');
-const { protect } = require('../middleware/authMiddleware');
+const { adminOnly, protect } = require('../middleware/authMiddleware');
 
 const router = express.Router();
 
 router.get('/', protect, getFitnessClasses);
-router.post('/', protect, createFitnessClass);
+router.post('/', protect, adminOnly, createFitnessClass);
 
 module.exports = router;
