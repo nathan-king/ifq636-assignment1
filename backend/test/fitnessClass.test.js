@@ -10,6 +10,18 @@ const { expect } = chai;
 
 chai.use(chaiHttp);
 
+const createToken = () => jwt.sign({ id: 'user-id' }, process.env.JWT_SECRET);
+
+const stubAuthenticatedUser = () => {
+    sinon.stub(User, 'findById').returns({
+        select: sinon.stub().resolves({
+            id: 'user-id',
+            name: 'Test User',
+            email: 'test@example.com',
+        }),
+    });
+};
+
 describe('POST /api/fitness-classes', () => {
     before(() => {
         process.env.JWT_SECRET = process.env.JWT_SECRET || 'test-secret';
@@ -18,18 +30,6 @@ describe('POST /api/fitness-classes', () => {
     afterEach(() => {
         sinon.restore();
     });
-
-    const createToken = () => jwt.sign({ id: 'user-id' }, process.env.JWT_SECRET);
-
-    const stubAuthenticatedUser = () => {
-        sinon.stub(User, 'findById').returns({
-            select: sinon.stub().resolves({
-                id: 'user-id',
-                name: 'Test User',
-                email: 'test@example.com',
-            }),
-        });
-    };
 
     it('creates a fitness class for an authenticated user', async () => {
         const classData = {
@@ -123,6 +123,79 @@ describe('POST /api/fitness-classes', () => {
                 time: '09:00',
                 capacity: 20,
             });
+
+        expect(res).to.have.status(500);
+        expect(res.body).to.deep.equal({ message: 'Database unavailable' });
+    });
+});
+
+describe('GET /api/fitness-classes', () => {
+    before(() => {
+        process.env.JWT_SECRET = process.env.JWT_SECRET || 'test-secret';
+    });
+
+    afterEach(() => {
+        sinon.restore();
+    });
+
+    it('returns fitness classes for an authenticated user', async () => {
+        const fitnessClasses = [
+            {
+                id: 'class-1',
+                class: 'Yoga',
+                instructor: 'Jack Jones',
+                date: '2026-06-03',
+                time: '7:00 PM',
+                capacity: 20,
+                status: 'confirmed',
+            },
+            {
+                id: 'class-2',
+                class: 'Pilates',
+                instructor: 'Jessica Smith',
+                date: '2026-06-04',
+                time: '7:00 PM',
+                capacity: 15,
+                status: 'confirmed',
+            },
+        ];
+        const sortStub = sinon.stub().resolves(fitnessClasses);
+        const findStub = sinon.stub(FitnessClass, 'find').returns({ sort: sortStub });
+
+        stubAuthenticatedUser();
+
+        const res = await chai.request(app)
+            .get('/api/fitness-classes')
+            .set('Authorization', `Bearer ${createToken()}`);
+
+        expect(res).to.have.status(200);
+        expect(res.body).to.deep.equal(fitnessClasses);
+        expect(findStub.calledOnceWithExactly()).to.equal(true);
+        expect(sortStub.calledOnceWithExactly({ date: 1, time: 1 })).to.equal(true);
+    });
+
+    it('rejects requests without a token', async () => {
+        const findByIdStub = sinon.stub(User, 'findById');
+        const findStub = sinon.stub(FitnessClass, 'find');
+
+        const res = await chai.request(app)
+            .get('/api/fitness-classes');
+
+        expect(res).to.have.status(401);
+        expect(res.body).to.deep.equal({ message: 'Not authorized, no token' });
+        expect(findByIdStub.notCalled).to.equal(true);
+        expect(findStub.notCalled).to.equal(true);
+    });
+
+    it('returns a server error when class retrieval fails', async () => {
+        const sortStub = sinon.stub().rejects(new Error('Database unavailable'));
+
+        sinon.stub(FitnessClass, 'find').returns({ sort: sortStub });
+        stubAuthenticatedUser();
+
+        const res = await chai.request(app)
+            .get('/api/fitness-classes')
+            .set('Authorization', `Bearer ${createToken()}`);
 
         expect(res).to.have.status(500);
         expect(res.body).to.deep.equal({ message: 'Database unavailable' });
