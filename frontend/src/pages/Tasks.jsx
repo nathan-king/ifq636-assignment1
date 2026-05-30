@@ -25,14 +25,16 @@ const Tasks = () => {
   }, [user]);
 
   return (
-    <div className="container mx-auto p-6">
-      <TaskForm
-        tasks={tasks}
-        setTasks={setTasks}
-        editingTask={editingTask}
-        setEditingTask={setEditingTask}
-      />
-      <TaskList tasks={tasks} setTasks={setTasks} setEditingTask={setEditingTask} />
+    <div className="min-h-[calc(100vh-57px)] bg-[#eefaff] px-4 py-8 sm:px-6 lg:py-12">
+      <div className="mx-auto max-w-5xl">
+        <TaskForm
+          tasks={tasks}
+          setTasks={setTasks}
+          editingTask={editingTask}
+          setEditingTask={setEditingTask}
+        />
+        <TaskList tasks={tasks} setTasks={setTasks} setEditingTask={setEditingTask} />
+      </div>
     </div>
   );
 };

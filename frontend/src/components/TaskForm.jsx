@@ -40,29 +40,36 @@ const TaskForm = ({ tasks, setTasks, editingTask, setEditingTask }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white p-6 shadow-md rounded mb-6">
-      <h1 className="text-2xl font-bold mb-4">{editingTask ? 'Your Form Name: Edit Operation' : 'Your Form Name: Create Operation'}</h1>
-      <input
-        type="text"
-        placeholder="Title"
-        value={formData.title}
-        onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-        className="w-full mb-4 p-2 border rounded"
-      />
-      <input
-        type="text"
-        placeholder="Description"
-        value={formData.description}
-        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-        className="w-full mb-4 p-2 border rounded"
-      />
-      <input
-        type="date"
-        value={formData.deadline}
-        onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
-        className="w-full mb-4 p-2 border rounded"
-      />
-      <button type="submit" className="w-full bg-blue-600 text-white p-2 rounded">
+    <form className="mb-6 rounded-lg border border-slate-200 bg-white px-6 py-6 shadow-sm" onSubmit={handleSubmit}>
+      <h1 className="mb-5 text-2xl font-bold text-slate-950">
+        {editingTask ? 'Edit Task' : 'Create Task'}
+      </h1>
+      <div className="grid gap-5 md:grid-cols-3">
+        <input
+          type="text"
+          placeholder="Title"
+          value={formData.title}
+          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+          className="h-12 rounded-md border border-slate-300 px-4 text-base text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
+        />
+        <input
+          type="text"
+          placeholder="Description"
+          value={formData.description}
+          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+          className="h-12 rounded-md border border-slate-300 px-4 text-base text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
+        />
+        <input
+          type="date"
+          value={formData.deadline}
+          onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
+          className="h-12 rounded-md border border-slate-300 px-4 text-base text-slate-950 outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
+        />
+      </div>
+      <button
+        type="submit"
+        className="mt-5 h-12 w-full rounded-md bg-blue-600 text-base font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
+      >
         {editingTask ? 'Update Button' : 'Create Button'}
       </button>
     </form>
