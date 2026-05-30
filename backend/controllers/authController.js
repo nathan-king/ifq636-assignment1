@@ -9,13 +9,28 @@ const generateToken = (id) => {
 
 const registerUser = async (req, res) => {
     const { name, email, password } = req.body;
+
+    if (!name || !email || !password) {
+        return res.status(400).json({ message: 'Name, email, and password are required' });
+    }
+
+    if (password.length < 6) {
+        return res.status(400).json({ message: 'Password must be at least 6 characters' });
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+
     try {
-        const userExists = await User.findOne({ email });
+        const userExists = await User.findOne({ email: normalizedEmail });
         if (userExists) return res.status(400).json({ message: 'User already exists' });
 
-        const user = await User.create({ name, email, password });
+        const user = await User.create({ name: name.trim(), email: normalizedEmail, password });
         res.status(201).json({ id: user.id, name: user.name, email: user.email, token: generateToken(user.id) });
     } catch (error) {
+        if (error.code === 11000) {
+            return res.status(400).json({ message: 'User already exists' });
+        }
+
         res.status(500).json({ message: error.message });
     }
 };

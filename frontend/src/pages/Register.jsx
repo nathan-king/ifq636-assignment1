@@ -31,59 +31,59 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-[calc(100vh-64px)] bg-[#eaf8fd] px-4 py-12 sm:px-6 lg:py-24">
+    <div className="min-h-[calc(100vh-64px)] bg-[#eefaff] px-4 py-8 sm:px-6 lg:py-16">
       <form
         onSubmit={handleSubmit}
-        className="mx-auto w-full max-w-3xl rounded-lg border border-gray-300 bg-white px-6 py-10 sm:px-12 md:px-16 lg:py-16"
+        className="mx-auto w-full max-w-3xl rounded-lg border border-slate-200 bg-white px-6 py-8 shadow-sm sm:px-10 md:px-12 lg:py-12"
       >
-        <div className="mb-12">
-          <h1 className="text-3xl font-bold leading-tight text-black sm:text-4xl">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold leading-tight text-slate-950">
             Create Your Account
           </h1>
-          <p className="mt-6 text-lg text-black">Fill in your details to get started</p>
+          <p className="mt-4 text-base text-slate-700">Fill in your details to get started</p>
         </div>
 
-        <div className="grid gap-x-10 gap-y-8 md:grid-cols-2">
-          <label className="block text-lg font-bold text-black">
+        <div className="grid gap-x-8 gap-y-6 md:grid-cols-2">
+          <label className="block text-base font-semibold text-slate-950">
             Full Name
             <input
               type="text"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="mt-3 h-14 w-full rounded-md border border-gray-300 px-4 text-base font-normal outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
+              className="mt-2 h-12 w-full rounded-md border border-slate-300 px-4 text-base font-normal text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
               required
             />
           </label>
 
-          <label className="block text-lg font-bold text-black">
+          <label className="block text-base font-semibold text-slate-950">
             Email
             <input
               type="email"
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className="mt-3 h-14 w-full rounded-md border border-gray-300 px-4 text-base font-normal outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
+              className="mt-2 h-12 w-full rounded-md border border-slate-300 px-4 text-base font-normal text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
               required
             />
           </label>
 
-          <label className="block text-lg font-bold text-black">
+          <label className="block text-base font-semibold text-slate-950">
             Password
             <input
               type="password"
               value={formData.password}
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              className="mt-3 h-14 w-full rounded-md border border-gray-300 px-4 text-base font-normal outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
+              className="mt-2 h-12 w-full rounded-md border border-slate-300 px-4 text-base font-normal text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
               required
             />
           </label>
 
-          <label className="block text-lg font-bold text-black">
+          <label className="block text-base font-semibold text-slate-950">
             Confirm Password
             <input
               type="password"
               value={formData.confirmPassword}
               onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-              className="mt-3 h-14 w-full rounded-md border border-gray-300 px-4 text-base font-normal outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
+              className="mt-2 h-12 w-full rounded-md border border-slate-300 px-4 text-base font-normal text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
               required
             />
           </label>
@@ -91,14 +91,14 @@ const Register = () => {
 
         <button
           type="submit"
-          className="mt-12 h-14 w-full rounded-md bg-blue-600 text-lg font-bold text-white transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
+          className="mt-8 h-12 w-full rounded-md bg-blue-600 text-base font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
         >
           Register
         </button>
 
-        <div className="mt-10 flex flex-col items-center justify-center gap-3 text-lg text-black sm:flex-row sm:gap-20">
+        <div className="mt-8 flex flex-col items-center justify-center gap-2 text-base text-slate-700 sm:flex-row sm:gap-6">
           <span>Already have an account?</span>
-          <Link to="/login" className="text-blue-600 hover:underline">
+          <Link to="/login" className="font-medium text-blue-600 hover:underline">
             Login here
           </Link>
         </div>
