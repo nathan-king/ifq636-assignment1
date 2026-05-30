@@ -1,31 +1,58 @@
-const classes = [
-  {
-    id: 'yoga',
-    class: 'Yoga',
-    instructor: 'Jack Jones',
-    date: '3 June 2026',
-    time: '7:00 PM',
-    capacity: '20/20',
-  },
-  {
-    id: 'pilates',
-    class: 'Pilates',
-    instructor: 'Jessica Smith',
-    date: '4 June 2026',
-    time: '7:00 PM',
-    capacity: '8/15',
-  },
-  {
-    id: 'pump',
-    class: 'Pump',
-    instructor: 'Thomas Max',
-    date: '6 June 2026',
-    time: '7:00 PM',
-    capacity: '12/18',
-  },
-];
+import { useEffect, useState } from 'react';
+import axiosInstance from '../axiosConfig';
+
+const formatDate = (date) => {
+  return new Date(date).toLocaleDateString('en-AU', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
+};
 
 const ClassList = () => {
+  const [classes, setClasses] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const fetchClasses = async () => {
+      try {
+        const response = await axiosInstance.get('/api/fitness-classes');
+        setClasses(response.data);
+      } catch (fetchError) {
+        setError(fetchError.response?.data?.message || 'Failed to load fitness classes.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchClasses();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="rounded-lg border border-slate-200 bg-white p-8 text-center text-base font-medium text-slate-700 shadow-sm">
+        Loading classes...
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="rounded-lg border border-red-200 bg-white p-8 text-center text-base font-medium text-red-600 shadow-sm">
+        {error}
+      </div>
+    );
+  }
+
+  if (classes.length === 0) {
+    return (
+      <div className="rounded-lg border border-slate-200 bg-white p-8 text-center text-base font-medium text-slate-700 shadow-sm">
+        No fitness classes are available yet.
+      </div>
+    );
+  }
+
   return (
     <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
       <div className="overflow-x-auto">
@@ -42,10 +69,10 @@ const ClassList = () => {
           </thead>
           <tbody>
             {classes.map((fitnessClass) => (
-              <tr key={fitnessClass.id} className="border-t border-slate-200 transition hover:bg-slate-50">
+              <tr key={fitnessClass._id} className="border-t border-slate-200 transition hover:bg-slate-50">
                 <td className="px-6 py-5 text-base font-medium text-slate-950">{fitnessClass.class}</td>
                 <td className="px-6 py-5 text-base text-slate-700">{fitnessClass.instructor}</td>
-                <td className="px-6 py-5 text-base text-slate-700">{fitnessClass.date}</td>
+                <td className="px-6 py-5 text-base text-slate-700">{formatDate(fitnessClass.date)}</td>
                 <td className="px-6 py-5 text-base text-slate-700">{fitnessClass.time}</td>
                 <td className="px-6 py-5 text-base text-slate-700">{fitnessClass.capacity}</td>
                 <td className="px-6 py-5">
