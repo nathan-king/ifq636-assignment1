@@ -33,11 +33,34 @@ const formatTime = (time) => {
   return `${displayHour}:${minute} ${suffix}`;
 };
 
+const formatDateForInput = (date) => {
+  if (!date) return '';
+  return new Date(date).toISOString().split('T')[0];
+};
+
+const formatTimeForInput = (time) => {
+  if (!time) return '';
+  if (/^\d{2}:\d{2}$/.test(time)) return time;
+
+  const match = time.match(/^(\d{1,2}):(\d{2})\s?(AM|PM)$/i);
+  if (!match) return '';
+
+  const [, hourValue, minute, suffix] = match;
+  let hour = Number(hourValue);
+
+  if (suffix.toUpperCase() === 'PM' && hour !== 12) hour += 12;
+  if (suffix.toUpperCase() === 'AM' && hour === 12) hour = 0;
+
+  return `${String(hour).padStart(2, '0')}:${minute}`;
+};
+
 const AdminClasses = () => {
   const { logout } = useAuth();
   const navigate = useNavigate();
   const [classes, setClasses] = useState([]);
   const [formData, setFormData] = useState(initialFormData);
+  const [editingClassId, setEditingClassId] = useState(null);
+  const [editFormData, setEditFormData] = useState(initialFormData);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -79,6 +102,37 @@ const AdminClasses = () => {
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleEdit = (fitnessClass) => {
+    setEditingClassId(fitnessClass._id);
+    setEditFormData({
+      class: fitnessClass.class,
+      instructor: fitnessClass.instructor,
+      date: formatDateForInput(fitnessClass.date),
+      time: formatTimeForInput(fitnessClass.time),
+      capacity: String(fitnessClass.capacity),
+    });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingClassId(null);
+    setEditFormData(initialFormData);
+  };
+
+  const handleSaveEdit = (fitnessClassId) => {
+    setClasses(
+      classes.map((fitnessClass) =>
+        fitnessClass._id === fitnessClassId
+          ? {
+              ...fitnessClass,
+              ...editFormData,
+              capacity: Number(editFormData.capacity),
+            }
+          : fitnessClass
+      )
+    );
+    handleCancelEdit();
   };
 
   return (
@@ -138,23 +192,121 @@ const AdminClasses = () => {
                     </td>
                   </tr>
                 ) : (
-                  classes.map((fitnessClass) => (
-                    <tr key={fitnessClass._id} className="border-t border-slate-200 transition hover:bg-slate-50">
-                      <td className="px-6 py-5 text-base font-medium text-slate-950">{fitnessClass.class}</td>
-                      <td className="px-6 py-5 text-base text-slate-700">{fitnessClass.instructor}</td>
-                      <td className="px-6 py-5 text-base text-slate-700">{formatDate(fitnessClass.date)}</td>
-                      <td className="px-6 py-5 text-base text-slate-700">{formatTime(fitnessClass.time)}</td>
-                      <td className="px-6 py-5 text-base text-slate-700">{fitnessClass.capacity}</td>
-                      <td className="px-6 py-5 text-base">
-                        <button type="button" className="mr-4 font-medium text-blue-600 hover:underline">
-                          Edit
-                        </button>
-                        <button type="button" className="font-medium text-red-600 hover:underline">
-                          Cancel
-                        </button>
-                      </td>
-                    </tr>
-                  ))
+                  classes.map((fitnessClass) => {
+                    const isEditing = editingClassId === fitnessClass._id;
+
+                    return (
+                      <tr
+                        key={fitnessClass._id}
+                        className={`border-t border-slate-200 transition ${isEditing ? 'bg-amber-50/80' : 'hover:bg-slate-50'}`}
+                      >
+                        <td className="px-6 py-5 text-base font-medium text-slate-950">
+                          {isEditing ? (
+                            <input
+                              type="text"
+                              aria-label="Edit class name"
+                              value={editFormData.class}
+                              onChange={(event) => setEditFormData({ ...editFormData, class: event.target.value })}
+                              className="h-11 w-full rounded-md border border-amber-200 bg-white px-3 text-base text-slate-950 outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
+                              required
+                            />
+                          ) : (
+                            fitnessClass.class
+                          )}
+                        </td>
+                        <td className="px-6 py-5 text-base text-slate-700">
+                          {isEditing ? (
+                            <input
+                              type="text"
+                              aria-label="Edit instructor"
+                              value={editFormData.instructor}
+                              onChange={(event) => setEditFormData({ ...editFormData, instructor: event.target.value })}
+                              className="h-11 w-full rounded-md border border-amber-200 bg-white px-3 text-base text-slate-950 outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
+                              required
+                            />
+                          ) : (
+                            fitnessClass.instructor
+                          )}
+                        </td>
+                        <td className="px-6 py-5 text-base text-slate-700">
+                          {isEditing ? (
+                            <input
+                              type="date"
+                              aria-label="Edit date"
+                              value={editFormData.date}
+                              onChange={(event) => setEditFormData({ ...editFormData, date: event.target.value })}
+                              className="h-11 w-full rounded-md border border-amber-200 bg-white px-3 text-base text-slate-950 outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
+                              required
+                            />
+                          ) : (
+                            formatDate(fitnessClass.date)
+                          )}
+                        </td>
+                        <td className="px-6 py-5 text-base text-slate-700">
+                          {isEditing ? (
+                            <input
+                              type="time"
+                              aria-label="Edit time"
+                              value={editFormData.time}
+                              onChange={(event) => setEditFormData({ ...editFormData, time: event.target.value })}
+                              className="h-11 w-full rounded-md border border-amber-200 bg-white px-3 text-base text-slate-950 outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
+                              required
+                            />
+                          ) : (
+                            formatTime(fitnessClass.time)
+                          )}
+                        </td>
+                        <td className="px-6 py-5 text-base text-slate-700">
+                          {isEditing ? (
+                            <input
+                              type="number"
+                              min="1"
+                              aria-label="Edit capacity"
+                              value={editFormData.capacity}
+                              onChange={(event) => setEditFormData({ ...editFormData, capacity: event.target.value })}
+                              className="h-11 w-full rounded-md border border-amber-200 bg-white px-3 text-base text-slate-950 outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
+                              required
+                            />
+                          ) : (
+                            fitnessClass.capacity
+                          )}
+                        </td>
+                        <td className="px-6 py-5 text-base">
+                          {isEditing ? (
+                            <>
+                              <button
+                                type="button"
+                                onClick={() => handleSaveEdit(fitnessClass._id)}
+                                className="mr-4 font-medium text-emerald-600 hover:underline"
+                              >
+                                Save
+                              </button>
+                              <button
+                                type="button"
+                                onClick={handleCancelEdit}
+                                className="font-medium text-slate-600 hover:underline"
+                              >
+                                Cancel
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              <button
+                                type="button"
+                                onClick={() => handleEdit(fitnessClass)}
+                                className="mr-4 font-medium text-blue-600 hover:underline"
+                              >
+                                Edit
+                              </button>
+                              <button type="button" className="font-medium text-red-600 hover:underline">
+                                Cancel
+                              </button>
+                            </>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })
                 )}
                 <tr className="border-t border-blue-200 bg-blue-50/80">
                   <td colSpan="6" className="px-6 pb-0 pt-5">
