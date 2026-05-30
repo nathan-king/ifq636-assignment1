@@ -37,8 +37,15 @@ const registerUser = async (req, res) => {
 
 const loginUser = async (req, res) => {
     const { email, password } = req.body;
+
+    if (!email || !password) {
+        return res.status(400).json({ message: 'Email and password are required' });
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+
     try {
-        const user = await User.findOne({ email });
+        const user = await User.findOne({ email: normalizedEmail });
         if (user && (await bcrypt.compare(password, user.password))) {
             res.json({ id: user.id, name: user.name, email: user.email, token: generateToken(user.id) });
         } else {
