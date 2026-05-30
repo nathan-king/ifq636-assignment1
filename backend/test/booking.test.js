@@ -339,3 +339,105 @@ describe('POST /api/bookings', () => {
         expect(res.body).to.deep.equal({ message: 'Database unavailable' });
     });
 });
+
+describe('PATCH /api/bookings/:id/cancel', () => {
+    before(() => {
+        process.env.JWT_SECRET = process.env.JWT_SECRET || 'test-secret';
+    });
+
+    afterEach(() => {
+        sinon.restore();
+    });
+
+    it('cancels a booking for the authenticated user', async () => {
+        const existingBooking = {
+            id: 'booking-id',
+            user: 'user-id',
+            fitnessClass: 'fitness-class-id',
+            status: 'booked',
+            save: sinon.stub(),
+            populate: sinon.stub().resolves(),
+        };
+        existingBooking.save.resolves(existingBooking);
+        const findOneStub = sinon.stub(Booking, 'findOne').resolves(existingBooking);
+
+        stubAuthenticatedUser();
+
+        const res = await chai.request(app)
+            .patch('/api/bookings/booking-id/cancel')
+            .set('Authorization', `Bearer ${createToken()}`);
+
+        expect(res).to.have.status(200);
+        expect(res.body).to.include({
+            id: 'booking-id',
+            user: 'user-id',
+            fitnessClass: 'fitness-class-id',
+            status: 'cancelled',
+        });
+        expect(findOneStub.calledOnceWithExactly({
+            _id: 'booking-id',
+            user: 'user-id',
+        })).to.equal(true);
+        expect(existingBooking.save.calledOnce).to.equal(true);
+        expect(existingBooking.populate.calledOnceWithExactly('fitnessClass')).to.equal(true);
+    });
+
+    it('rejects cancellation requests without a token', async () => {
+        const findOneStub = sinon.stub(Booking, 'findOne');
+
+        const res = await chai.request(app)
+            .patch('/api/bookings/booking-id/cancel');
+
+        expect(res).to.have.status(401);
+        expect(res.body).to.deep.equal({ message: 'Not authorized, no token' });
+        expect(findOneStub.notCalled).to.equal(true);
+    });
+
+    it('returns not found when the booking does not belong to the user', async () => {
+        const findOneStub = sinon.stub(Booking, 'findOne').resolves(null);
+
+        stubAuthenticatedUser();
+
+        const res = await chai.request(app)
+            .patch('/api/bookings/missing-booking-id/cancel')
+            .set('Authorization', `Bearer ${createToken()}`);
+
+        expect(res).to.have.status(404);
+        expect(res.body).to.deep.equal({ message: 'Booking not found' });
+        expect(findOneStub.calledOnceWithExactly({
+            _id: 'missing-booking-id',
+            user: 'user-id',
+        })).to.equal(true);
+    });
+
+    it('rejects already cancelled bookings', async () => {
+        const existingBooking = {
+            id: 'booking-id',
+            status: 'cancelled',
+            save: sinon.stub(),
+        };
+
+        sinon.stub(Booking, 'findOne').resolves(existingBooking);
+        stubAuthenticatedUser();
+
+        const res = await chai.request(app)
+            .patch('/api/bookings/booking-id/cancel')
+            .set('Authorization', `Bearer ${createToken()}`);
+
+        expect(res).to.have.status(400);
+        expect(res.body).to.deep.equal({ message: 'Booking already cancelled' });
+        expect(existingBooking.save.notCalled).to.equal(true);
+    });
+
+    it('returns a server error when cancellation fails', async () => {
+        sinon.stub(Booking, 'findOne').rejects(new Error('Database unavailable'));
+        stubAuthenticatedUser();
+
+        const res = await chai.request(app)
+            .patch('/api/bookings/booking-id/cancel')
+            .set('Authorization', `Bearer ${createToken()}`);
+
+        expect(res).to.have.status(500);
+        expect(res.body).to.deep.equal({ message: 'Database unavailable' });
+    });
+});
