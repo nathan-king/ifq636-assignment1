@@ -26,7 +26,8 @@ const Register = () => {
       alert('Registration successful. Please log in.');
       navigate('/login');
     } catch (error) {
-      alert('Registration failed. Please try again.');
+      const message = error.response?.data?.message || 'Registration failed. Please make sure the backend server is running.';
+      alert(message);
     }
   };
 
