@@ -223,3 +223,146 @@ describe('GET /api/fitness-classes', () => {
         expect(res.body).to.deep.equal({ message: 'Database unavailable' });
     });
 });
+
+describe('PUT /api/fitness-classes/:id', () => {
+    before(() => {
+        process.env.JWT_SECRET = process.env.JWT_SECRET || 'test-secret';
+    });
+
+    afterEach(() => {
+        sinon.restore();
+    });
+
+    it('updates a fitness class for an authenticated admin', async () => {
+        const updateData = {
+            class: 'Yoga Flow',
+            instructor: 'Jane Smith',
+            date: '2026-06-08',
+            time: '18:30',
+            capacity: 24,
+            status: 'confirmed',
+        };
+        const existingClass = {
+            class: 'Yoga',
+            instructor: 'Jack Jones',
+            date: '2026-06-03',
+            time: '19:00',
+            capacity: 20,
+            status: 'confirmed',
+            save: sinon.stub().resolves({
+                id: 'fitness-class-id',
+                ...updateData,
+            }),
+        };
+        const findByIdStub = sinon.stub(FitnessClass, 'findById').resolves(existingClass);
+
+        stubAuthenticatedUser('admin');
+
+        const res = await chai.request(app)
+            .put('/api/fitness-classes/fitness-class-id')
+            .set('Authorization', `Bearer ${createToken()}`)
+            .send(updateData);
+
+        expect(res).to.have.status(200);
+        expect(res.body).to.include({
+            id: 'fitness-class-id',
+            class: 'Yoga Flow',
+            instructor: 'Jane Smith',
+            date: '2026-06-08',
+            time: '18:30',
+            capacity: 24,
+            status: 'confirmed',
+        });
+        expect(findByIdStub.calledOnceWithExactly('fitness-class-id')).to.equal(true);
+        expect(existingClass.save.calledOnce).to.equal(true);
+        expect(existingClass.class).to.equal('Yoga Flow');
+        expect(existingClass.instructor).to.equal('Jane Smith');
+        expect(existingClass.date).to.equal('2026-06-08');
+        expect(existingClass.time).to.equal('18:30');
+        expect(existingClass.capacity).to.equal(24);
+    });
+
+    it('rejects class updates for non-admin users', async () => {
+        const findByIdStub = sinon.stub(FitnessClass, 'findById');
+
+        stubAuthenticatedUser();
+
+        const res = await chai.request(app)
+            .put('/api/fitness-classes/fitness-class-id')
+            .set('Authorization', `Bearer ${createToken()}`)
+            .send({
+                class: 'Yoga Flow',
+                instructor: 'Jane Smith',
+                date: '2026-06-08',
+                time: '18:30',
+                capacity: 24,
+            });
+
+        expect(res).to.have.status(403);
+        expect(res.body).to.deep.equal({ message: 'Not authorized as admin' });
+        expect(findByIdStub.notCalled).to.equal(true);
+    });
+
+    it('rejects updates with missing required fields', async () => {
+        const findByIdStub = sinon.stub(FitnessClass, 'findById');
+
+        stubAuthenticatedUser('admin');
+
+        const res = await chai.request(app)
+            .put('/api/fitness-classes/fitness-class-id')
+            .set('Authorization', `Bearer ${createToken()}`)
+            .send({
+                class: '',
+                instructor: 'Jane Smith',
+                date: '2026-06-08',
+                time: '18:30',
+                capacity: 24,
+            });
+
+        expect(res).to.have.status(400);
+        expect(res.body).to.deep.equal({
+            message: 'Class, instructor, date, time, and capacity are required',
+        });
+        expect(findByIdStub.notCalled).to.equal(true);
+    });
+
+    it('returns not found when the class does not exist', async () => {
+        sinon.stub(FitnessClass, 'findById').resolves(null);
+
+        stubAuthenticatedUser('admin');
+
+        const res = await chai.request(app)
+            .put('/api/fitness-classes/missing-class-id')
+            .set('Authorization', `Bearer ${createToken()}`)
+            .send({
+                class: 'Yoga Flow',
+                instructor: 'Jane Smith',
+                date: '2026-06-08',
+                time: '18:30',
+                capacity: 24,
+            });
+
+        expect(res).to.have.status(404);
+        expect(res.body).to.deep.equal({ message: 'Fitness class not found' });
+    });
+
+    it('returns a server error when class update fails', async () => {
+        sinon.stub(FitnessClass, 'findById').rejects(new Error('Database unavailable'));
+
+        stubAuthenticatedUser('admin');
+
+        const res = await chai.request(app)
+            .put('/api/fitness-classes/fitness-class-id')
+            .set('Authorization', `Bearer ${createToken()}`)
+            .send({
+                class: 'Yoga Flow',
+                instructor: 'Jane Smith',
+                date: '2026-06-08',
+                time: '18:30',
+                capacity: 24,
+            });
+
+        expect(res).to.have.status(500);
+        expect(res.body).to.deep.equal({ message: 'Database unavailable' });
+    });
+});

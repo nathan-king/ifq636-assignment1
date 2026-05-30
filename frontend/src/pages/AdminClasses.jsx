@@ -120,19 +120,26 @@ const AdminClasses = () => {
     setEditFormData(initialFormData);
   };
 
-  const handleSaveEdit = (fitnessClassId) => {
-    setClasses(
-      classes.map((fitnessClass) =>
-        fitnessClass._id === fitnessClassId
-          ? {
-              ...fitnessClass,
-              ...editFormData,
-              capacity: Number(editFormData.capacity),
-            }
-          : fitnessClass
-      )
-    );
-    handleCancelEdit();
+  const handleSaveEdit = async (fitnessClassId) => {
+    setSaving(true);
+
+    try {
+      const response = await axiosInstance.put(`/api/fitness-classes/${fitnessClassId}`, {
+        ...editFormData,
+        capacity: Number(editFormData.capacity),
+      });
+
+      setClasses(
+        classes.map((fitnessClass) =>
+          fitnessClass._id === fitnessClassId ? response.data : fitnessClass
+        )
+      );
+      handleCancelEdit();
+    } catch (error) {
+      alert(error.response?.data?.message || 'Failed to update class.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -277,9 +284,10 @@ const AdminClasses = () => {
                               <button
                                 type="button"
                                 onClick={() => handleSaveEdit(fitnessClass._id)}
+                                disabled={saving}
                                 className="mr-4 font-medium text-emerald-600 hover:underline"
                               >
-                                Save
+                                {saving ? 'Saving...' : 'Save'}
                               </button>
                               <button
                                 type="button"
