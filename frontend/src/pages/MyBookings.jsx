@@ -39,6 +39,8 @@ const MyBookings = () => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [cancellingBookingId, setCancellingBookingId] = useState(null);
+  const [successMessage, setSuccessMessage] = useState('');
 
   useEffect(() => {
     const fetchBookings = async () => {
@@ -58,6 +60,33 @@ const MyBookings = () => {
   const handleLogout = () => {
     logout();
     navigate('/login', { replace: true });
+  };
+
+  const handleCancelBooking = async (bookingId) => {
+    setCancellingBookingId(bookingId);
+    setError('');
+    setSuccessMessage('');
+
+    try {
+      const response = await axiosInstance.patch(`/api/bookings/${bookingId}/cancel`);
+
+      setBookings(
+        bookings.map((booking) =>
+          booking._id === bookingId
+            ? {
+                ...booking,
+                ...response.data,
+                fitnessClass: response.data.fitnessClass || booking.fitnessClass,
+              }
+            : booking
+        )
+      );
+      setSuccessMessage('Booking cancelled.');
+    } catch (cancelError) {
+      setError(cancelError.response?.data?.message || 'Failed to cancel booking.');
+    } finally {
+      setCancellingBookingId(null);
+    }
   };
 
   const sidebarClassName = isAdmin
@@ -92,6 +121,12 @@ const MyBookings = () => {
 
       <main className="flex-1 px-4 py-8 sm:px-8 md:px-12 lg:px-16 lg:py-16">
         <h2 className="mb-6 text-3xl font-bold text-slate-950">My Bookings</h2>
+
+        {successMessage && (
+          <div className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-5 py-4 text-base font-medium text-emerald-700">
+            {successMessage}
+          </div>
+        )}
 
         {error && (
           <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-5 py-4 text-base font-medium text-red-700">
@@ -138,13 +173,24 @@ const MyBookings = () => {
                         <td className="px-6 py-5 text-base text-slate-700">{formatDate(fitnessClass.date)}</td>
                         <td className="px-6 py-5 text-base text-slate-700">{formatTime(fitnessClass.time)}</td>
                         <td className="px-6 py-5">
-                          <span className="inline-flex rounded-full bg-emerald-50 px-3 py-1 text-sm font-semibold text-emerald-700 ring-1 ring-inset ring-emerald-200">
+                          <span
+                            className={`inline-flex rounded-full px-3 py-1 text-sm font-semibold ring-1 ring-inset ${
+                              booking.status === 'cancelled'
+                                ? 'bg-slate-100 text-slate-600 ring-slate-200'
+                                : 'bg-emerald-50 text-emerald-700 ring-emerald-200'
+                            }`}
+                          >
                             {formatStatus(booking.status)}
                           </span>
                         </td>
                         <td className="px-6 py-5">
-                          <button type="button" className="font-medium text-red-600 hover:underline">
-                            Cancel
+                          <button
+                            type="button"
+                            onClick={() => handleCancelBooking(booking._id)}
+                            disabled={booking.status === 'cancelled' || cancellingBookingId === booking._id}
+                            className="font-medium text-red-600 hover:underline disabled:cursor-not-allowed disabled:text-slate-400 disabled:no-underline"
+                          >
+                            {cancellingBookingId === booking._id ? 'Cancelling...' : 'Cancel'}
                           </button>
                         </td>
                       </tr>

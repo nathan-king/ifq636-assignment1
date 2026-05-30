@@ -13,6 +13,32 @@ const getBookings = async (req, res) => {
     }
 };
 
+const cancelBooking = async (req, res) => {
+    try {
+        const booking = await Booking.findOne({
+            _id: req.params.id,
+            user: req.user._id,
+        });
+
+        if (!booking) {
+            return res.status(404).json({ message: 'Booking not found' });
+        }
+
+        if (booking.status === 'cancelled') {
+            return res.status(400).json({ message: 'Booking already cancelled' });
+        }
+
+        booking.status = 'cancelled';
+        const updatedBooking = await booking.save();
+
+        await updatedBooking.populate('fitnessClass');
+
+        res.json(updatedBooking);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 const createBooking = async (req, res) => {
     const { fitnessClassId } = req.body;
 
@@ -65,4 +91,4 @@ const createBooking = async (req, res) => {
     }
 };
 
-module.exports = { createBooking, getBookings };
+module.exports = { cancelBooking, createBooking, getBookings };
