@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
 import axiosInstance from '../axiosConfig';
+import AppSidebar from '../components/AppSidebar';
 import { useAuth } from '../context/AuthContext';
 
 const formatDate = (date) => {
@@ -34,8 +34,7 @@ const formatStatus = (status) => {
 };
 
 const MyBookings = () => {
-  const { isAdmin, logout } = useAuth();
-  const navigate = useNavigate();
+  const { isAdmin } = useAuth();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -56,11 +55,6 @@ const MyBookings = () => {
 
     fetchBookings();
   }, []);
-
-  const handleLogout = () => {
-    logout();
-    navigate('/login', { replace: true });
-  };
 
   const handleCancelBooking = async (bookingId) => {
     setCancellingBookingId(bookingId);
@@ -89,38 +83,12 @@ const MyBookings = () => {
     }
   };
 
-  const sidebarClassName = isAdmin
-    ? 'bg-[#053342] px-4 py-6 text-white md:min-h-[calc(100vh-57px)] md:w-72 md:shrink-0 md:px-5 md:py-16'
-    : 'border-r border-slate-200 bg-[#eefaff] px-4 py-5 md:min-h-[calc(100vh-57px)] md:w-72 md:shrink-0 md:px-5 md:py-8';
-  const inactiveLinkClassName = isAdmin
-    ? 'whitespace-nowrap rounded-md px-6 py-3 text-center text-base font-medium text-white transition hover:bg-white/10 md:w-full'
-    : 'whitespace-nowrap rounded-md px-6 py-3 text-center text-base font-medium text-slate-800 transition hover:bg-white md:w-full';
-
   return (
     <div className="min-h-[calc(100vh-57px)] bg-white md:flex">
-      <aside className={sidebarClassName}>
-        {isAdmin && <h1 className="mb-8 px-4 text-3xl font-bold">Admin Panel</h1>}
-        <nav className="flex gap-2 overflow-x-auto md:flex-col md:gap-4 md:overflow-visible">
-          <Link to={isAdmin ? '/admin/classes' : '/classes'} className={inactiveLinkClassName}>
-            {isAdmin ? 'Classes' : 'Browse Classes'}
-          </Link>
-          <Link
-            to="/bookings"
-            className="whitespace-nowrap rounded-md bg-blue-600 px-6 py-3 text-center text-base font-semibold text-white shadow-sm md:w-full"
-          >
-            My Bookings
-          </Link>
-          <Link to="/profile" className={inactiveLinkClassName}>
-            Profile
-          </Link>
-          <button type="button" onClick={handleLogout} className={inactiveLinkClassName}>
-            Logout
-          </button>
-        </nav>
-      </aside>
+      <AppSidebar active="bookings" />
 
       <main className="flex-1 px-4 py-8 sm:px-8 md:px-12 lg:px-16 lg:py-16">
-        <h2 className="mb-6 text-3xl font-bold text-slate-950">My Bookings</h2>
+        <h2 className="mb-6 text-3xl font-bold text-slate-950">{isAdmin ? 'Bookings' : 'My Bookings'}</h2>
 
         {successMessage && (
           <div className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-5 py-4 text-base font-medium text-emerald-700">

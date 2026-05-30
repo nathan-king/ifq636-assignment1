@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import axiosInstance from '../axiosConfig';
+import AppSidebar from '../components/AppSidebar';
 
 const Profile = () => {
   const { user } = useAuth();
@@ -9,13 +10,16 @@ const Profile = () => {
     email: '',
     university: '',
     address: '',
+    role: '',
   });
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
 
   useEffect(() => {
-    // Fetch profile data from the backend
     const fetchProfile = async () => {
       setLoading(true);
+      setError('');
       try {
         const response = await axiosInstance.get('/api/auth/profile');
         setFormData({
@@ -23,9 +27,10 @@ const Profile = () => {
           email: response.data.email,
           university: response.data.university || '',
           address: response.data.address || '',
+          role: response.data.role || user?.role || 'user',
         });
       } catch (error) {
-        alert('Failed to fetch profile. Please try again.');
+        setError(error.response?.data?.message || 'Failed to fetch profile. Please try again.');
       } finally {
         setLoading(false);
       }
@@ -37,80 +42,118 @@ const Profile = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setError('');
+    setSuccessMessage('');
     try {
-      await axiosInstance.put('/api/auth/profile', formData);
-      alert('Profile updated successfully!');
+      const response = await axiosInstance.put('/api/auth/profile', {
+        name: formData.name,
+        email: formData.email,
+        university: formData.university,
+        address: formData.address,
+      });
+      setFormData({
+        name: response.data.name,
+        email: response.data.email,
+        university: response.data.university || '',
+        address: response.data.address || '',
+        role: response.data.role || formData.role,
+      });
+      setSuccessMessage('Profile updated successfully.');
     } catch (error) {
-      alert('Failed to update profile. Please try again.');
+      setError(error.response?.data?.message || 'Failed to update profile. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
-  if (loading) {
-    return <div className="mt-20 text-center text-base font-medium text-slate-700">Loading...</div>;
-  }
-
   return (
-    <div className="min-h-[calc(100vh-57px)] bg-[#eefaff] px-4 py-8 sm:px-6 lg:py-16">
-      <form
-        onSubmit={handleSubmit}
-        className="mx-auto w-full max-w-xl rounded-lg border border-slate-200 bg-white px-6 py-8 shadow-sm sm:px-10 md:px-12"
-      >
-        <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold leading-tight text-slate-950">Your Profile</h1>
-          <p className="mt-4 text-base text-slate-700">Keep your account details up to date</p>
-        </div>
+    <div className="min-h-[calc(100vh-57px)] bg-white md:flex">
+      <AppSidebar active="profile" />
 
-        <div className="space-y-6">
-          <label className="block text-base font-semibold text-slate-950">
-            Name
-            <input
-              type="text"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="mt-2 h-12 w-full rounded-md border border-slate-300 px-4 text-base font-normal text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
-            />
-          </label>
+      <main className="flex-1 px-4 py-8 sm:px-8 md:px-12 lg:px-16 lg:py-16">
+        <h2 className="mb-6 text-3xl font-bold text-slate-950">Your Profile</h2>
 
-          <label className="block text-base font-semibold text-slate-950">
-            Email
-            <input
-              type="email"
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className="mt-2 h-12 w-full rounded-md border border-slate-300 px-4 text-base font-normal text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
-            />
-          </label>
+        {successMessage && (
+          <div className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-5 py-4 text-base font-medium text-emerald-700">
+            {successMessage}
+          </div>
+        )}
 
-          <label className="block text-base font-semibold text-slate-950">
-            University
-            <input
-              type="text"
-              value={formData.university}
-              onChange={(e) => setFormData({ ...formData, university: e.target.value })}
-              className="mt-2 h-12 w-full rounded-md border border-slate-300 px-4 text-base font-normal text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
-            />
-          </label>
+        {error && (
+          <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-5 py-4 text-base font-medium text-red-700">
+            {error}
+          </div>
+        )}
 
-          <label className="block text-base font-semibold text-slate-950">
-            Address
-            <input
-              type="text"
-              value={formData.address}
-              onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-              className="mt-2 h-12 w-full rounded-md border border-slate-300 px-4 text-base font-normal text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
-            />
-          </label>
-        </div>
+        <form onSubmit={handleSubmit} className="max-w-3xl overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+          <div className="border-b border-slate-200 bg-[#eefaff] px-6 py-5">
+            <h3 className="text-base font-bold text-slate-950">Account Details</h3>
+          </div>
 
-        <button
-          type="submit"
-          className="mt-8 h-12 w-full rounded-md bg-blue-600 text-base font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
-        >
-          {loading ? 'Updating...' : 'Update Profile'}
-        </button>
-      </form>
+          {loading ? (
+            <div className="px-6 py-8 text-center text-base font-medium text-slate-700">Loading profile...</div>
+          ) : (
+            <div className="grid gap-6 px-6 py-6 sm:grid-cols-2">
+              <label className="block text-base font-semibold text-slate-950">
+                Name
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className="mt-2 h-11 w-full rounded-md border border-slate-300 px-3 text-base font-normal text-slate-950 outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
+                />
+              </label>
+
+              <label className="block text-base font-semibold text-slate-950">
+                Email
+                <input
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  className="mt-2 h-11 w-full rounded-md border border-slate-300 px-3 text-base font-normal text-slate-950 outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
+                />
+              </label>
+
+              <label className="block text-base font-semibold text-slate-950">
+                University
+                <input
+                  type="text"
+                  value={formData.university}
+                  onChange={(e) => setFormData({ ...formData, university: e.target.value })}
+                  className="mt-2 h-11 w-full rounded-md border border-slate-300 px-3 text-base font-normal text-slate-950 outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
+                />
+              </label>
+
+              <label className="block text-base font-semibold text-slate-950">
+                Address
+                <input
+                  type="text"
+                  value={formData.address}
+                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                  className="mt-2 h-11 w-full rounded-md border border-slate-300 px-3 text-base font-normal text-slate-950 outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
+                />
+              </label>
+
+              <div className="block text-base font-semibold text-slate-950">
+                Account Type
+                <div className="mt-2 flex h-11 items-center rounded-md border border-slate-200 bg-slate-50 px-3 text-base font-medium text-slate-700">
+                  {formData.role === 'admin' ? 'Admin' : 'Member'}
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="border-t border-slate-200 px-6 py-5">
+            <button
+              type="submit"
+              disabled={loading}
+              className="h-11 rounded-md bg-blue-600 px-6 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {loading ? 'Saving...' : 'Update Profile'}
+            </button>
+          </div>
+        </form>
+      </main>
     </div>
   );
 };

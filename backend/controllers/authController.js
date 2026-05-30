@@ -66,6 +66,7 @@ const getProfile = async (req, res) => {
       res.status(200).json({
         name: user.name,
         email: user.email,
+        role: user.role,
         university: user.university,
         address: user.address,
       });
@@ -86,7 +87,7 @@ const updateUserProfile = async (req, res) => {
         user.address = address || user.address;
 
         const updatedUser = await user.save();
-        res.json({ id: updatedUser.id, name: updatedUser.name, email: updatedUser.email, university: updatedUser.university, address: updatedUser.address, token: generateToken(updatedUser.id) });
+        res.json({ id: updatedUser.id, name: updatedUser.name, email: updatedUser.email, role: updatedUser.role, university: updatedUser.university, address: updatedUser.address, token: generateToken(updatedUser.id) });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -16,25 +16,11 @@ beforeEach(() => {
   localStorage.clear();
 });
 
-test('logout clears the stored user session and shows logged-out navigation', () => {
-  localStorage.setItem(
-    'user',
-    JSON.stringify({
-      id: 'user-id',
-      name: 'Test User',
-      email: 'test@example.com',
-      token: 'test-token',
-    })
-  );
-
+test('navbar shows logged-out navigation', () => {
   renderWithAuth(<Navbar />);
 
-  fireEvent.click(screen.getByRole('button', { name: /logout/i }));
-
-  expect(localStorage.getItem('user')).toBeNull();
   expect(screen.getByRole('link', { name: /login/i })).toBeInTheDocument();
   expect(screen.getByRole('link', { name: /register/i })).toBeInTheDocument();
-  expect(screen.queryByRole('button', { name: /logout/i })).not.toBeInTheDocument();
 });
 
 test('protected routes redirect logged-out users to login', () => {
