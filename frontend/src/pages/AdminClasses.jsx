@@ -167,7 +167,7 @@ const AdminClasses = () => {
             Classes
           </Link>
           <Link
-            to="/classes"
+            to="/bookings"
             className="whitespace-nowrap rounded-md px-6 py-3 text-center text-base font-medium text-white transition hover:bg-white/10 md:w-full"
           >
             Bookings

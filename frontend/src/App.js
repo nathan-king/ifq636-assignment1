@@ -5,6 +5,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import AdminClasses from './pages/AdminClasses';
 import Classes from './pages/Classes';
 import Login from './pages/Login';
+import MyBookings from './pages/MyBookings';
 import Register from './pages/Register';
 import Profile from './pages/Profile';
 import Tasks from './pages/Tasks';
@@ -21,6 +22,14 @@ function App() {
           element={
             <ProtectedRoute>
               <Classes />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/bookings"
+          element={
+            <ProtectedRoute>
+              <MyBookings />
             </ProtectedRoute>
           }
         />
