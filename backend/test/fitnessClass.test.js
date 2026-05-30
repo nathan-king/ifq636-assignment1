@@ -366,3 +366,71 @@ describe('PUT /api/fitness-classes/:id', () => {
         expect(res.body).to.deep.equal({ message: 'Database unavailable' });
     });
 });
+
+describe('DELETE /api/fitness-classes/:id', () => {
+    before(() => {
+        process.env.JWT_SECRET = process.env.JWT_SECRET || 'test-secret';
+    });
+
+    afterEach(() => {
+        sinon.restore();
+    });
+
+    it('deletes a fitness class for an authenticated admin', async () => {
+        const existingClass = {
+            deleteOne: sinon.stub().resolves(),
+        };
+        const findByIdStub = sinon.stub(FitnessClass, 'findById').resolves(existingClass);
+
+        stubAuthenticatedUser('admin');
+
+        const res = await chai.request(app)
+            .delete('/api/fitness-classes/fitness-class-id')
+            .set('Authorization', `Bearer ${createToken()}`);
+
+        expect(res).to.have.status(200);
+        expect(res.body).to.deep.equal({ message: 'Fitness class deleted' });
+        expect(findByIdStub.calledOnceWithExactly('fitness-class-id')).to.equal(true);
+        expect(existingClass.deleteOne.calledOnce).to.equal(true);
+    });
+
+    it('rejects class deletion for non-admin users', async () => {
+        const findByIdStub = sinon.stub(FitnessClass, 'findById');
+
+        stubAuthenticatedUser();
+
+        const res = await chai.request(app)
+            .delete('/api/fitness-classes/fitness-class-id')
+            .set('Authorization', `Bearer ${createToken()}`);
+
+        expect(res).to.have.status(403);
+        expect(res.body).to.deep.equal({ message: 'Not authorized as admin' });
+        expect(findByIdStub.notCalled).to.equal(true);
+    });
+
+    it('returns not found when deleting a missing class', async () => {
+        sinon.stub(FitnessClass, 'findById').resolves(null);
+
+        stubAuthenticatedUser('admin');
+
+        const res = await chai.request(app)
+            .delete('/api/fitness-classes/missing-class-id')
+            .set('Authorization', `Bearer ${createToken()}`);
+
+        expect(res).to.have.status(404);
+        expect(res.body).to.deep.equal({ message: 'Fitness class not found' });
+    });
+
+    it('returns a server error when class deletion fails', async () => {
+        sinon.stub(FitnessClass, 'findById').rejects(new Error('Database unavailable'));
+
+        stubAuthenticatedUser('admin');
+
+        const res = await chai.request(app)
+            .delete('/api/fitness-classes/fitness-class-id')
+            .set('Authorization', `Bearer ${createToken()}`);
+
+        expect(res).to.have.status(500);
+        expect(res.body).to.deep.equal({ message: 'Database unavailable' });
+    });
+});
