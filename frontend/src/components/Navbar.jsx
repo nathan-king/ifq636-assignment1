@@ -46,6 +46,9 @@ const Navbar = () => {
             <Link to="/classes" className="rounded-md px-2 py-2 transition hover:bg-blue-700 sm:px-3">
               Classes
             </Link>
+            <Link to="/bookings" className="rounded-md px-2 py-2 transition hover:bg-blue-700 sm:px-3">
+              Bookings
+            </Link>
             <Link to="/tasks" className="rounded-md px-2 py-2 transition hover:bg-blue-700 sm:px-3">
               CRUD
             </Link>
