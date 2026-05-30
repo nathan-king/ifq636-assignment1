@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
 import axiosInstance from '../axiosConfig';
-import { useAuth } from '../context/AuthContext';
+import AppSidebar from '../components/AppSidebar';
 
 const initialFormData = {
   class: '',
@@ -55,8 +54,6 @@ const formatTimeForInput = (time) => {
 };
 
 const AdminClasses = () => {
-  const { logout } = useAuth();
-  const navigate = useNavigate();
   const [classes, setClasses] = useState([]);
   const [formData, setFormData] = useState(initialFormData);
   const [editingClassId, setEditingClassId] = useState(null);
@@ -78,11 +75,6 @@ const AdminClasses = () => {
 
     fetchClasses();
   }, []);
-
-  const handleLogout = () => {
-    logout();
-    navigate('/login', { replace: true });
-  };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -157,36 +149,7 @@ const AdminClasses = () => {
 
   return (
     <div className="min-h-[calc(100vh-57px)] bg-white md:flex">
-      <aside className="bg-[#053342] px-4 py-6 text-white md:min-h-[calc(100vh-57px)] md:w-72 md:shrink-0 md:px-5 md:py-16">
-        <h1 className="mb-8 px-4 text-3xl font-bold">Admin Panel</h1>
-        <nav className="flex gap-2 overflow-x-auto md:flex-col md:gap-4 md:overflow-visible">
-          <Link
-            to="/admin/classes"
-            className="whitespace-nowrap rounded-md bg-blue-600 px-6 py-3 text-center text-base font-semibold text-white shadow-sm md:w-full"
-          >
-            Classes
-          </Link>
-          <Link
-            to="/bookings"
-            className="whitespace-nowrap rounded-md px-6 py-3 text-center text-base font-medium text-white transition hover:bg-white/10 md:w-full"
-          >
-            Bookings
-          </Link>
-          <Link
-            to="/profile"
-            className="whitespace-nowrap rounded-md px-6 py-3 text-center text-base font-medium text-white transition hover:bg-white/10 md:w-full"
-          >
-            Profile
-          </Link>
-          <button
-            type="button"
-            onClick={handleLogout}
-            className="whitespace-nowrap rounded-md px-6 py-3 text-center text-base font-medium text-white transition hover:bg-white/10 md:w-full"
-          >
-            Logout
-          </button>
-        </nav>
-      </aside>
+      <AppSidebar active="classes" />
 
       <main className="flex-1 px-4 py-8 sm:px-8 md:px-12 lg:px-16 lg:py-16">
         <h2 className="mb-6 text-3xl font-bold text-slate-950">Manage Classes</h2>
