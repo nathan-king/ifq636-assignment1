@@ -7,6 +7,7 @@ import { AuthProvider } from './context/AuthContext';
 jest.mock('./axiosConfig', () => ({
   __esModule: true,
   default: {
+    delete: jest.fn(),
     get: jest.fn(),
     post: jest.fn(),
     put: jest.fn(),
@@ -106,4 +107,37 @@ test('admin can edit a class row and submit the update request', async () => {
   expect(await screen.findByText('Pilates')).toBeInTheDocument();
   expect(screen.getByText('Jessica Smith')).toBeInTheDocument();
   expect(screen.queryByLabelText(/edit class name/i)).not.toBeInTheDocument();
+});
+
+test('admin can delete a class row', async () => {
+  axiosInstance.get.mockResolvedValue({
+    data: [
+      {
+        _id: 'class-id',
+        class: 'Yoga',
+        instructor: 'Jack Jones',
+        date: '2026-06-03T00:00:00.000Z',
+        time: '19:00',
+        capacity: 20,
+        status: 'confirmed',
+      },
+    ],
+  });
+  axiosInstance.delete.mockResolvedValue({
+    data: { message: 'Fitness class deleted' },
+  });
+
+  renderAdminClasses();
+
+  expect(await screen.findByText('Yoga')).toBeInTheDocument();
+
+  fireEvent.click(screen.getByRole('button', { name: /^delete$/i }));
+
+  await waitFor(() => {
+    expect(axiosInstance.delete).toHaveBeenCalledWith('/api/fitness-classes/class-id');
+  });
+
+  await waitFor(() => {
+    expect(screen.queryByText('Yoga')).not.toBeInTheDocument();
+  });
 });

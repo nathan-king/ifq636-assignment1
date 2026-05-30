@@ -142,6 +142,19 @@ const AdminClasses = () => {
     }
   };
 
+  const handleDelete = async (fitnessClassId) => {
+    try {
+      await axiosInstance.delete(`/api/fitness-classes/${fitnessClassId}`);
+      setClasses(classes.filter((fitnessClass) => fitnessClass._id !== fitnessClassId));
+
+      if (editingClassId === fitnessClassId) {
+        handleCancelEdit();
+      }
+    } catch (error) {
+      alert(error.response?.data?.message || 'Failed to delete class.');
+    }
+  };
+
   return (
     <div className="min-h-[calc(100vh-57px)] bg-white md:flex">
       <aside className="bg-[#053342] px-4 py-6 text-white md:min-h-[calc(100vh-57px)] md:w-72 md:shrink-0 md:px-5 md:py-16">
@@ -306,8 +319,12 @@ const AdminClasses = () => {
                               >
                                 Edit
                               </button>
-                              <button type="button" className="font-medium text-red-600 hover:underline">
-                                Cancel
+                              <button
+                                type="button"
+                                onClick={() => handleDelete(fitnessClass._id)}
+                                className="font-medium text-red-600 hover:underline"
+                              >
+                                Delete
                               </button>
                             </>
                           )}

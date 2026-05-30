@@ -60,4 +60,19 @@ const updateFitnessClass = async (req, res) => {
     }
 };
 
-module.exports = { createFitnessClass, getFitnessClasses, updateFitnessClass };
+const deleteFitnessClass = async (req, res) => {
+    try {
+        const fitnessClass = await FitnessClass.findById(req.params.id);
+
+        if (!fitnessClass) {
+            return res.status(404).json({ message: 'Fitness class not found' });
+        }
+
+        await fitnessClass.deleteOne();
+        res.json({ message: 'Fitness class deleted' });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+module.exports = { createFitnessClass, deleteFitnessClass, getFitnessClasses, updateFitnessClass };
