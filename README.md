@@ -4,7 +4,7 @@ Fitness Class Booking System is a MERN application for browsing fitness classes,
 
 ## Public URL
 
-Public project URL: `TODO: add deployed URL`
+Public project URL: `http://54.162.0.232`
 
 ## Test Login
 
