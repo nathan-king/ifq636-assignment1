@@ -11,7 +11,7 @@ on:
 
 jobs:
   backend-tests:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
 
     defaults:
       run:
@@ -35,7 +35,7 @@ jobs:
         run: npm test
 
   frontend-tests:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
 
     defaults:
       run:
